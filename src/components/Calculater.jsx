@@ -1,11 +1,31 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import styled from "styled-components";
+
+const OPERATION_TOKENS = ["+", "-"];
+
+const Key = styled.button`
+  width: 3rem;
+  height: 3rem;
+  display: inline-block;
+
+  border: 0;
+  border-radius: .5rem;
+  background-color: #00ffd5;
+  color: #fff;
+  padding: 0;
+`
+
+const KeysGrid = styled.div`
+  display: inline-grid;
+  gap: .25rem;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  width: auto;
+`
 
 const Calculator = () => {
-  const [inputDisplay, setInputDisplay] = useState("");
-  const [results, setResults] = useState("");
   const [tokens, setTokens] = useState([]);
-
-  const operationsTokens = ["+", "-"];
+  const [hello, setHello] = useState('');
+  const lastToken = tokens[tokens.length - 1]
 
   const handleTokenClick = (event) => {
     const token = event.target.value;
@@ -47,56 +67,98 @@ const Calculator = () => {
   }
 
   function isOperationToken(token) {
-    return operationsTokens.includes(token);
+    return OPERATION_TOKENS.includes(token);
   }
 
-  const calculeteResults = () => {};
+  const handleResultClick = () => {
+    const newTokens = [...tokens];
+  }
 
-  console.log(tokens, tokens.join(" "));
-  
+  const calculeteResults = (tokens = []) => {
+    if (isOperationToken(lastToken)) {
+      tokens.pop();
+    }
+
+    while (tokens.length > 1) {
+      const [firstValue, operation, secondValue] = tokens.splice(-3);
+      
+      let result;
+
+      if (operation === "+")
+        result = Number(firstValue) + Number(secondValue);
+      
+      tokens.push(result);
+    }
+
+    return tokens[0]
+  };
+
+  const handleAllClear = () => {
+    setTokens([]);
+    localStorage.clear('tokens')
+  }
+
+  const displayText = useMemo(() => tokens.join(' '), [tokens])
+
+  const result = useMemo(() => calculeteResults([...tokens]), [tokens])
+
+  useEffect(() => { // Roda sempre que há atualização
+    if (tokens.length > 0) {
+      localStorage.setItem('tokens', JSON.stringify(tokens));
+    }
+  }, [tokens])
+
+  useEffect(() => { // Roda apenas uma vez na renderização
+    const tokens = JSON.parse(localStorage.getItem('tokens'))
+    
+    if (tokens) {
+      setTokens(tokens)
+    }
+  }, [])
+
   return (
     <div>
-      <input type="text" value={tokens.join(" ")} readOnly />
-      <div>
-        <button>AC</button>
-        <button value="+" onClick={handleTokenClick}>
+      <input type="text" value={displayText} readOnly />
+      <KeysGrid>
+        <Key onClick={handleAllClear}>AC</Key>
+        <Key value="+" onClick={handleTokenClick}>
           +
-        </button>
-        <button value="0" onClick={handleTokenClick}>
+        </Key>
+        <Key value="0" onClick={handleTokenClick}>
           0
-        </button>
-        <button value="1" onClick={handleTokenClick}>
+        </Key>
+        <Key value="1" onClick={handleTokenClick}>
           1
-        </button>
-        <button value="2" onClick={handleTokenClick}>
+        </Key>
+        <Key value="2" onClick={handleTokenClick}>
           2
-        </button>
-        <button value="3" onClick={handleTokenClick}>
+        </Key>
+        <Key value="3" onClick={handleTokenClick}>
           3
-        </button>
-        <button value="4" onClick={handleTokenClick}>
+        </Key>
+        <Key value="4" onClick={handleTokenClick}>
           4
-        </button>
-        <button value="5" onClick={handleTokenClick}>
+        </Key>
+        <Key value="5" onClick={handleTokenClick}>
           5
-        </button>
-        <button value="6" onClick={handleTokenClick}>
+        </Key>
+        <Key value="6" onClick={handleTokenClick}>
           6
-        </button>
-        <button value="7" onClick={handleTokenClick}>
+        </Key>
+        <Key value="7" onClick={handleTokenClick}>
           7
-        </button>
-        <button value="8" onClick={handleTokenClick}>
+        </Key>
+        <Key value="8" onClick={handleTokenClick}>
           8
-        </button>
-        <button value="9" onClick={handleTokenClick}>
+        </Key>
+        <Key value="9" onClick={handleTokenClick}>
           9
-        </button>
-        <button value="=" onClick={handleTokenClick}>
+        </Key>
+        <Key value="=" onClick={handleResultClick}>
           =
-        </button>
-      </div>
-      <p>Resultado: </p>
+        </Key>
+      </KeysGrid>
+      <p>Resultado: {result} </p>
     </div>
   );
 };
